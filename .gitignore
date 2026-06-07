@@ -1,0 +1,14 @@
+# Secrets — never commit real credentials or a populated session cache.
+config.yaml
+auth.json
+
+# Local data the program writes.
+reviews.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/

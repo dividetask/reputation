@@ -5,6 +5,13 @@ data flows between them, and the full class breakdown. Each class is intended to
 be **dumb** — one responsibility, small, predictable (see the design principle in
 [`../CLAUDE.md`](../CLAUDE.md)).
 
+> **Build order.** Version 1 is the **local program only** (now scaffolded in
+> [`../local/`](../local)). The **webserver is deferred** — we get the local
+> program working correctly first. The webserver sections below are the target
+> design. When built, webservers also **federate**: each one tracks peer
+> webservers and periodically syncs reviews with them (see §5 and
+> [`WEBSERVER.md`](WEBSERVER.md)).
+
 ## 1. System Overview
 
 ```
@@ -28,13 +35,17 @@ be **dumb** — one responsibility, small, predictable (see the design principle
                         └──────────────────────────────────────────┘
 
                         ┌──────────────────────────────────────────┐
-                        │               WEBSERVER                  │
+                        │           WEBSERVER (deferred)           │
    HTTP uploads ──────▶ │  UploadController ─▶ ReviewService ──┐    │
                         │                                      ▼    │
    HTTP browse  ◀────── │  BrowseController  ◀─ ReviewRepository ─▶ reviews store
-                        │                                           │
-                        │  ServerConfig, create_app() (wiring)      │
-                        └──────────────────────────────────────────┘
+                        │                          ▲                │
+                        │  PeerSyncScheduler ─▶ PeerSyncService ─┐  │
+                        │       (every N s)         │            │  │
+                        │  ServerConfig, create_app() (wiring)   │  │
+                        └────────────────────────────────────────┼──┘
+                                                                  ▼
+                                            ◀── pull/push reviews ──▶ peer webservers
 ```
 
 ## 2. Data Flow
@@ -89,19 +100,25 @@ Each row is one dumb class with a single responsibility. Details in
 | `CLI` | Render menus/prompts and collect user input. No business logic. |
 | `App` | Orchestrator: wires the classes above and sequences calls. |
 
-## 5. Class Breakdown — Webserver
+## 5. Class Breakdown — Webserver (deferred)
 
-Details in [`WEBSERVER.md`](WEBSERVER.md).
+Details in [`WEBSERVER.md`](WEBSERVER.md). Not implemented yet — built after the
+local program.
 
 | Class | Single responsibility |
 |---|---|
-| `ServerConfig` | Read server settings (bind host/port, store path). |
+| `ServerConfig` | Read server settings (bind host/port, store path, peers, sync interval). |
 | `Review` | Dumb data/validation model for an incoming/stored review. |
 | `ReviewRepository` | Persist + fetch reviews from the store. The only class that touches storage. |
 | `ReviewService` | De-duplicate and validate reviews before they are stored. |
 | `UploadController` | HTTP endpoint(s) for receiving uploaded reviews. |
 | `BrowseController` | HTTP endpoint(s) for browsing reviews. |
-| `create_app()` | Wiring/factory: build the app and connect controllers to the service. |
+| `PeerRegistry` | Dumb list of peer webservers to sync with. |
+| `PeerClient` | The only class that makes outbound HTTP calls to a peer. |
+| `PeerSyncService` | Pull reviews from each peer and ingest them (dedup by `review_id`). |
+| `PeerSyncScheduler` | The only class that knows about time: run a sync every N seconds. |
+| `PeerController` | HTTP endpoint(s) to list/register peers and trigger a sync. |
+| `create_app()` | Wiring/factory: build the app, connect controllers, start the sync loop. |
 
 ## 6. Why this split (dumb classes)
 
@@ -113,8 +130,22 @@ Details in [`WEBSERVER.md`](WEBSERVER.md).
   can change (JSON → DB) without touching business logic.
 - **Controllers** only translate HTTP ↔ objects; the **service** holds the small
   amount of real logic (dedup/validation).
+- **Federation** is split four ways — `PeerRegistry` (who), `PeerClient` (how to
+  talk), `PeerSyncService` (the sync logic, reusing `ReviewService` for dedup),
+  and `PeerSyncScheduler` (when) — so no class grows smart.
 - **`App` / `create_app()`** contain no logic beyond wiring and sequencing — no
   god objects.
+
+### Federation flow (webserver ↔ webserver)
+
+Once built, every server periodically pulls from its peers and converges:
+
+1. `PeerSyncScheduler` fires every `sync_interval_seconds`.
+2. `PeerSyncService` asks `PeerClient` to pull each peer's reviews (incrementally,
+   via a `since` cursor on the peer's `GET /reviews`).
+3. Pulled reviews are handed to `ReviewService.ingest`, which **de-dups by
+   `review_id`** — the same content-addressed id used everywhere — so syncing is
+   idempotent and the network of servers converges to the same collection.
 
 ## 7. Out of scope / open questions
 
@@ -123,5 +154,11 @@ Details in [`WEBSERVER.md`](WEBSERVER.md).
   `ReviewRepository` without touching the rest.
 - **Authentication between local program and server.** Not yet specified (e.g.
   an upload API key in the YAML). Flagged for a future decision.
+- **Peer trust & sync cursor.** How peer servers authenticate to each other,
+  whether membership is static or self-registering, and the exact `since` cursor
+  for incremental pulls are all undecided. See [`WEBSERVER.md`](WEBSERVER.md).
+- **Posting reviews to Audible.** The unofficial API has no confirmed
+  review-submission endpoint, so `ReviewPoster`/`AudibleGateway.post_review` are
+  scaffolded but raise `NotImplementedError` until an endpoint is confirmed.
 - **Audible Terms of Service.** Access is via the unofficial API; fragility and
   ToS considerations apply. See [`../CLAUDE.md`](../CLAUDE.md).

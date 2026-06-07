@@ -34,6 +34,14 @@
 
 2. **Webserver** — a central service that accepts uploaded Audible reviews from
    any number of local programs and lets viewers browse the collected reviews.
+   Webservers also **federate**: each one keeps a list of peer webservers and
+   periodically syncs reviews with them, so the collection converges across the
+   network.
+
+> **Build order.** Version 1 is the **local program only** — it is scaffolded in
+> [`local/`](local/). The **webserver is deferred**: we get the local program
+> working correctly before coding the server. Webserver docs are the target
+> design, not yet implemented.
 
 See `docs/` for the full documentation set:
 
@@ -97,21 +105,39 @@ When in doubt, split a class in two rather than letting one grow smart.
 reputation/
 ├── CLAUDE.md
 ├── README.md
+├── .gitignore
 ├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── LOCAL_PROGRAM.md
 │   ├── WEBSERVER.md
 │   ├── CONFIGURATION.md
 │   └── DATA_MODEL.md
-├── local/                 # the local program (planned)
+├── local/                       # the local program (SCAFFOLDED)
+│   ├── README.md
+│   ├── requirements.txt
 │   ├── config.example.yaml
-│   └── ...
-└── server/                # the webserver (planned)
+│   └── reputation_local/        # one small "dumb" class per module
+│       ├── __main__.py          # composition root / entry point
+│       ├── config_loader.py     # ConfigLoader
+│       ├── config_models.py     # AppConfig, AudibleCredentials, WebserverTarget
+│       ├── models.py            # Book, Review
+│       ├── review_id.py         # make_review_id (dedup key)
+│       ├── audible_authenticator.py
+│       ├── audible_gateway.py   # the only class that knows Audible's API
+│       ├── book_searcher.py
+│       ├── review_reader.py     # saves every review it reads
+│       ├── review_poster.py
+│       ├── review_store.py      # reviews.json
+│       ├── review_uploader.py
+│       ├── app.py               # orchestrator
+│       └── cli.py
+└── server/                      # the webserver (DEFERRED — not started)
     └── ...
 ```
 
-> The `local/` and `server/` source trees are not implemented yet — this task is
-> documentation only. The layout above is the intended target.
+> The `local/` source tree is scaffolded (runnable structure; Audible endpoint
+> shapes are best-effort). The `server/` tree is **not** started yet — see the
+> build order above.
 
 ---
 

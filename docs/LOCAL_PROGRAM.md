@@ -106,12 +106,16 @@ class AudibleGateway:
         # client.get(f"1.0/catalog/products/{asin}", response_groups="reviews,rating")
         ...
     def post_review(self, asin: str, payload: dict) -> dict:
-        # client.post(<review endpoint for asin>, body=payload)
+        # NOT wired: the unofficial API has no confirmed review-submission
+        # endpoint. Raises NotImplementedError until one is confirmed.
         ...
 ```
 
 > Endpoint paths/response groups are best-effort against the unofficial API and
 > may need adjustment. They live **only** here so repairs are one-file changes.
+> **Posting reviews** in particular is unverified — Audible review submission
+> normally happens through the website, so `post_review` currently raises
+> `NotImplementedError` (the rest of the pipeline is wired and ready).
 
 ---
 
@@ -206,6 +210,10 @@ class ReviewStore:
 ### `ReviewUploader`
 **Responsibility:** share collected reviews — read everything from the store and
 POST it to the webserver. Knows the upload endpoint; knows nothing about Audible.
+
+> The webserver is deferred (v2), so this class has nothing to talk to yet. It is
+> included now because sharing is a local-program responsibility and the upload
+> contract is already defined in [`WEBSERVER.md`](WEBSERVER.md).
 
 ```python
 class ReviewUploader:

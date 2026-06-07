@@ -1,0 +1,20 @@
+# Copy this file to config.yaml and fill in your details.
+# NEVER commit a real config.yaml or auth.json — they contain your credentials.
+
+# Audible login credentials and marketplace.
+audible:
+  username: "you@example.com"     # Amazon/Audible account email
+  password: "your-password"       # Amazon/Audible password
+  marketplace: "us"               # locale / country code: us, uk, de, fr, ca, au, jp, in, it, es, br
+
+# Where the central webserver lives. The local program uploads reviews here.
+# (The webserver is not part of the first version yet — this is used by the
+#  "share" command once a server is running.)
+webserver:
+  url: "http://reviews.example.com"   # scheme + host (no port)
+  port: 8000
+
+# Local file paths.
+storage:
+  reviews_path: "reviews.json"    # every review the program reads is saved here
+  auth_cache_path: "auth.json"    # cached Audible session (created on first login)

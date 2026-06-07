@@ -11,7 +11,9 @@ It has two parts:
   reviews. It saves every review it reads to a local JSON file and can upload
   everything it has collected to the webserver.
 - A **webserver** that accepts uploaded reviews from any number of local
-  programs and lets viewers browse the pooled collection.
+  programs and lets viewers browse the pooled collection. Webservers also
+  federate — each tracks peer webservers and periodically syncs reviews with
+  them so the collection converges across the network.
 
 ```
 ┌─────────────────┐        login / search / read / post        ┌─────────┐
@@ -29,7 +31,11 @@ It has two parts:
 
 ## Status
 
-Greenfield — **documentation only** so far. No application code yet.
+- **Local program** — scaffolded in [`local/`](local/) (runnable class structure;
+  Audible endpoint shapes are best-effort against the unofficial API).
+- **Webserver** — **deferred.** We are getting the local program working
+  correctly first. Its design (including webserver-to-webserver federation) is
+  documented but not yet built.
 
 ## Documentation
 
