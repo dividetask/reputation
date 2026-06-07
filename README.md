@@ -7,16 +7,16 @@ place.
 It has two parts:
 
 - A **local program** that logs into Audible (credentials supplied via a YAML
-  config file), lets you search for books, read reviews, and post your own
-  reviews. It saves every review it reads to a local JSON file and can upload
-  everything it has collected to the webserver.
+  config file) and lets you search for books and read reviews. It saves every
+  review it reads to a local JSON file and can upload everything it has collected
+  to the webserver.
 - A **webserver** that accepts uploaded reviews from any number of local
   programs and lets viewers browse the pooled collection. Webservers also
   federate — each tracks peer webservers and periodically syncs reviews with
   them so the collection converges across the network.
 
 ```
-┌─────────────────┐        login / search / read / post        ┌─────────┐
+┌─────────────────┐          login / search / read            ┌─────────┐
 │  Local program  │  ───────────────────────────────────────▶  │ Audible │
 │  (per user)     │  ◀───────────────────────────────────────  │   API   │
 └────────┬────────┘             reviews + catalog               └─────────┘

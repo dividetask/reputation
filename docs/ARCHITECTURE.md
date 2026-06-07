@@ -21,11 +21,11 @@ be **dumb** — one responsibility, small, predictable (see the design principle
    config.yaml ───────▶ │  ConfigLoader ─▶ AppConfig               │
                         │                                          │
                         │  AudibleAuthenticator ─▶ AudibleGateway  │ ◀──▶ Audible API
-                        │       │            │            │        │      (mkb79/Audible)
-                        │  BookSearcher  ReviewReader  ReviewPoster│
-                        │       │            │                     │
-                        │       ▼            ▼                     │
-                        │     Book         Review (data classes)   │
+                        │             │            │               │      (mkb79/Audible)
+                        │      BookSearcher    ReviewReader        │
+                        │             │            │               │
+                        │             ▼            ▼               │
+                        │           Book         Review (data classes)
                         │                    │                     │
                         │              ReviewStore ───▶ reviews.json (local)
                         │                    │                     │
@@ -60,12 +60,13 @@ be **dumb** — one responsibility, small, predictable (see the design principle
 4. **Read reviews.** The user opens a book. `ReviewReader` fetches its reviews
    and returns `Review` objects. **Every review read is saved** by `ReviewStore`
    to the local `reviews.json`.
-5. **Post a review.** The user writes a review. `ReviewPoster` submits it to
-   Audible through the gateway.
-6. **Share.** On request, `ReviewUploader` reads everything in `ReviewStore` and
+5. **Share.** On request, `ReviewUploader` reads everything in `ReviewStore` and
    POSTs it to the webserver.
-7. **Browse.** Viewers hit the webserver's browse endpoints; `BrowseController`
+6. **Browse.** Viewers hit the webserver's browse endpoints; `BrowseController`
    asks the `ReviewRepository` and returns the pooled reviews.
+
+> The unofficial Audible API is read-only for reviews (no submission endpoint),
+> so the local program reads and shares reviews but does not post them.
 
 ## 3. The two programs at a glance
 
@@ -94,7 +95,6 @@ Each row is one dumb class with a single responsibility. Details in
 | `Review` | Dumb data class: the review fields (see `DATA_MODEL.md`). |
 | `BookSearcher` | Turn a query into a list of `Book`s via the gateway. |
 | `ReviewReader` | Turn a book/ASIN into a list of `Review`s via the gateway. |
-| `ReviewPoster` | Submit one user-written `Review` to Audible via the gateway. |
 | `ReviewStore` | Read/write `Review`s to the local `reviews.json`. |
 | `ReviewUploader` | Send `Review`s from the store to the webserver over HTTP. |
 | `CLI` | Render menus/prompts and collect user input. No business logic. |
@@ -124,7 +124,7 @@ local program.
 
 - The **gateway** is the only place that knows Audible's quirky, unofficial API.
   If Audible changes, you fix one class.
-- **Searchers/readers/posters** each do exactly one Audible operation and speak
+- **Searchers/readers** each do exactly one Audible operation and speak
   in `Book`/`Review` objects, so they are trivial to read and test.
 - **Stores/repositories** are the only classes that touch disk, so persistence
   can change (JSON → DB) without touching business logic.
@@ -157,8 +157,8 @@ Once built, every server periodically pulls from its peers and converges:
 - **Peer trust & sync cursor.** How peer servers authenticate to each other,
   whether membership is static or self-registering, and the exact `since` cursor
   for incremental pulls are all undecided. See [`WEBSERVER.md`](WEBSERVER.md).
-- **Posting reviews to Audible.** The unofficial API has no confirmed
-  review-submission endpoint, so `ReviewPoster`/`AudibleGateway.post_review` are
-  scaffolded but raise `NotImplementedError` until an endpoint is confirmed.
+- **Posting reviews to Audible.** Not supported — the unofficial API is
+  read-oriented and has no review-submission endpoint, so the local program reads
+  and shares reviews only.
 - **Audible Terms of Service.** Access is via the unofficial API; fragility and
   ToS considerations apply. See [`../CLAUDE.md`](../CLAUDE.md).

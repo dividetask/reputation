@@ -17,7 +17,6 @@ from .audible_gateway import AudibleGateway
 from .book_searcher import BookSearcher
 from .cli import CLI
 from .config_loader import ConfigError, ConfigLoader
-from .review_poster import ReviewPoster
 from .review_reader import ReviewReader
 from .review_store import ReviewStore
 from .review_uploader import ReviewUploader
@@ -41,7 +40,6 @@ def main(argv: list[str] | None = None) -> int:
     app = App(
         searcher=BookSearcher(gateway),
         reader=ReviewReader(gateway, store),
-        poster=ReviewPoster(gateway),
         uploader=ReviewUploader(config.webserver, store),
     )
     CLI(app).run()

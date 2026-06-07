@@ -4,14 +4,18 @@ The local program runs on a user's machine. It logs into Audible using
 credentials from a YAML config file and lets the user:
 
 - **search** for books,
-- **read** reviews for a book (saving every review it reads to a local JSON file),
-- **post** their own reviews to Audible, and
+- **read** reviews for a book (saving every review it reads to a local JSON file), and
 - **share** all the reviews it has collected by uploading them to the webserver.
 
 It is built from many small, **dumb** classes (one responsibility each). The
 sections below describe each class: its job, what it depends on, and the methods
 it is expected to expose. Method signatures are illustrative — the contract
 matters more than the exact names.
+
+> **No review posting.** Submitting reviews to Audible is not supported: the
+> unofficial `mkb79/Audible` API is read-oriented and has no review-submission
+> endpoint (Audible review posting goes through the website). The program reads
+> and shares reviews only.
 
 > Stack: Python 3.10+, [`mkb79/Audible`](https://github.com/mkb79/Audible) for
 > Audible access, `PyYAML` for config, `httpx`/`requests` for the upload client.
@@ -105,17 +109,12 @@ class AudibleGateway:
     def get_product_reviews(self, asin: str) -> dict:
         # client.get(f"1.0/catalog/products/{asin}", response_groups="reviews,rating")
         ...
-    def post_review(self, asin: str, payload: dict) -> dict:
-        # NOT wired: the unofficial API has no confirmed review-submission
-        # endpoint. Raises NotImplementedError until one is confirmed.
-        ...
 ```
 
 > Endpoint paths/response groups are best-effort against the unofficial API and
 > may need adjustment. They live **only** here so repairs are one-file changes.
-> **Posting reviews** in particular is unverified — Audible review submission
-> normally happens through the website, so `post_review` currently raises
-> `NotImplementedError` (the rest of the pipeline is wired and ready).
+> The gateway exposes read calls only — the unofficial API has no
+> review-submission endpoint.
 
 ---
 
@@ -180,15 +179,6 @@ class ReviewReader:
         return reviews
 ```
 
-### `ReviewPoster`
-**Responsibility:** submit one user-written review to Audible.
-
-```python
-class ReviewPoster:
-    def __init__(self, gateway: AudibleGateway): ...
-    def post(self, asin: str, rating: int, title: str, body: str) -> Review: ...
-```
-
 ---
 
 ## 5. Persistence & sharing classes
@@ -232,7 +222,7 @@ it only calls into `App` and prints results.
 ```python
 class CLI:
     def __init__(self, app: "App"): ...
-    def run(self) -> None: ...   # menu loop: search / read / post / share / quit
+    def run(self) -> None: ...   # menu loop: search / read / share / quit
 ```
 
 ### `App`
@@ -242,10 +232,9 @@ sequencing.
 
 ```python
 class App:
-    def __init__(self, searcher, reader, poster, uploader): ...
+    def __init__(self, searcher, reader, uploader): ...
     def search(self, query: str) -> list[Book]: ...
     def read_reviews(self, asin: str) -> list[Review]: ...
-    def post_review(self, asin, rating, title, body) -> Review: ...
     def share(self) -> "UploadResult": ...
 ```
 
@@ -262,7 +251,6 @@ def main():
     app = App(
         searcher=BookSearcher(gateway),
         reader=ReviewReader(gateway, store),
-        poster=ReviewPoster(gateway),
         uploader=ReviewUploader(config.webserver, store),
     )
     CLI(app).run()
@@ -276,6 +264,5 @@ def main():
 2. User picks **search** → `App.search` → `BookSearcher` → list of `Book`s.
 3. User picks a book → **read** → `App.read_reviews` → `ReviewReader` fetches and
    **saves every review** to `reviews.json`.
-4. User picks **post** → writes a review → `ReviewPoster` submits it to Audible.
-5. User picks **share** → `ReviewUploader` uploads everything in the store to the
+4. User picks **share** → `ReviewUploader` uploads everything in the store to the
    webserver.

@@ -27,10 +27,11 @@
 
 1. **Local program** — runs on a user's machine. It reads Audible login
    credentials and settings from a YAML config file, logs into Audible, and lets
-   the user search for books, read reviews, and post their own reviews. Every
-   review it reads is saved locally to a JSON file. It can also connect to the
-   webserver (URL/port from the same YAML file) and share every review it has
-   downloaded from Audible.
+   the user search for books and read reviews. Every review it reads is saved
+   locally to a JSON file. It can also connect to the webserver (URL/port from
+   the same YAML file) and share every review it has downloaded from Audible.
+   (Posting reviews back to Audible is not supported — the unofficial API is
+   read-oriented and has no review-submission endpoint.)
 
 2. **Webserver** — a central service that accepts uploaded Audible reviews from
    any number of local programs and lets viewers browse the collected reviews.
@@ -126,7 +127,6 @@ reputation/
 │       ├── audible_gateway.py   # the only class that knows Audible's API
 │       ├── book_searcher.py
 │       ├── review_reader.py     # saves every review it reads
-│       ├── review_poster.py
 │       ├── review_store.py      # reviews.json
 │       ├── review_uploader.py
 │       ├── app.py               # orchestrator

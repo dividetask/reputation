@@ -1,8 +1,7 @@
 # Reputation — Local Program
 
 The per-user program: log into Audible, search for books, read reviews (every
-one is saved locally), post your own reviews, and share collected reviews with
-the central webserver.
+one is saved locally), and share collected reviews with the central webserver.
 
 > The webserver is **not** part of the first version. The "share" command targets
 > it and will work once a server exists; everything else works standalone.
@@ -40,18 +39,18 @@ Many small, single-responsibility ("dumb") classes. See
 | `audible_gateway.py` | `AudibleGateway` | The only class that knows Audible's API. |
 | `book_searcher.py` | `BookSearcher` | Query → `Book`s. |
 | `review_reader.py` | `ReviewReader` | ASIN → `Review`s, saving each. |
-| `review_poster.py` | `ReviewPoster` | Submit a review to Audible. |
 | `review_store.py` | `ReviewStore` | Read/write `reviews.json`. |
 | `review_uploader.py` | `ReviewUploader` | Upload reviews to the webserver. |
 | `app.py` | `App` | Orchestrator (wiring + sequencing). |
 | `cli.py` | `CLI` | Menus/prompts. |
 | `__main__.py` | — | Composition root / entry point. |
 
-## Known gaps
+## Notes
 
-- **Posting reviews** is not wired to a confirmed endpoint — the unofficial
-  Audible API has no documented review-submission call, so `ReviewPoster.post`
-  currently raises `NotImplementedError`. See `audible_gateway.py`.
+- **Posting reviews is not supported.** The unofficial Audible API (via
+  `mkb79/Audible`) is read-oriented and has no review-submission endpoint —
+  Audible review posting goes through the website — so this program only reads
+  and shares reviews.
 - Audible endpoint paths / response-group field names are best-effort and live
   only in `AudibleGateway` / the searcher / the reader so they can be repaired in
   one place.

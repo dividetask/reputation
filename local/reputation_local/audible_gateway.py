@@ -37,18 +37,3 @@ class AudibleGateway:
             f"1.0/catalog/products/{asin}",
             response_groups=self._REVIEW_GROUPS,
         )
-
-    def post_review(self, asin: str, payload: dict) -> dict:
-        """Submit a review for a product.
-
-        WARNING: the review-submission endpoint is NOT verified against the
-        unofficial API — Audible/Amazon review posting normally goes through the
-        website, and ``mkb79/Audible`` does not document a review endpoint. The
-        path and payload below are a placeholder and almost certainly need to be
-        confirmed before this works. Kept here so all Audible knowledge stays in
-        one class.
-        """
-        raise NotImplementedError(
-            "Posting reviews to Audible is not yet wired up: the unofficial API "
-            "has no confirmed review-submission endpoint. See AudibleGateway."
-        )

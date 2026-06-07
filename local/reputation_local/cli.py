@@ -11,8 +11,7 @@ _MENU = """
 Reputation — local program
   1) Search for a book
   2) Read reviews for a book (ASIN)
-  3) Post a review
-  4) Share collected reviews with the webserver
+  3) Share collected reviews with the webserver
   q) Quit
 """
 
@@ -30,8 +29,6 @@ class CLI:
             elif choice == "2":
                 self._read()
             elif choice == "3":
-                self._post()
-            elif choice == "4":
                 self._share()
             elif choice == "q":
                 return
@@ -54,17 +51,6 @@ class CLI:
         for review in reviews:
             rating = review.rating if review.rating is not None else "-"
             print(f"  [{rating}] {review.title or ''}: {review.body[:80]}")
-
-    def _post(self) -> None:
-        asin = input("ASIN: ").strip()
-        rating = int(input("Rating (1-5): ").strip())
-        title = input("Title: ").strip()
-        body = input("Review: ").strip()
-        try:
-            self._app.post_review(asin, rating, title, body)
-            print("Posted.")
-        except NotImplementedError as exc:
-            print(f"Could not post: {exc}")
 
     def _share(self) -> None:
         try:
