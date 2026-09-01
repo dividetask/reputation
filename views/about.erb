@@ -1,0 +1,47 @@
+<article class="prose">
+  <h1>What this is</h1>
+  <p>
+    <strong>rehash</strong> crawls a list of sites, rewrites the headlines it
+    finds, and ranks the links the way reddit does — score against age, so a
+    story has to keep earning its place on the front page.
+  </p>
+
+  <h2>Where the links come from</h2>
+  <p>
+    Sources live in <code>config/sources.yml</code>. Each one is either an
+    RSS/Atom feed or a plain HTML page scraped with CSS selectors, and each one
+    belongs to a community. Nothing about the crawler is news-specific: any page
+    that lists links works.
+  </p>
+  <ul class="sources">
+    <% Rehash.config.sources.each do |source| %>
+      <li>
+        <a href="<%= h source.url %>"><%= h source.name %></a>
+        <span class="domain">(<%= h source.type %> → r/<%= h source.community %>)</span>
+      </li>
+    <% end %>
+  </ul>
+
+  <h2>How headlines get rewritten</h2>
+  <p>
+    Rewriting is pluggable — set <code>REWRITER</code> to pick one:
+  </p>
+  <ul>
+    <li><code>rule_based</code> (default): offline and deterministic. Strips section
+      labels, the trailing outlet name, shouting, hype clauses and stray punctuation.</li>
+    <li><code>claude</code>: genuine rewrites through the Anthropic API. Needs
+      <code>ANTHROPIC_API_KEY</code>; falls back to the rule-based rewriter on any error.</li>
+    <li><code>none</code>: keeps the publisher's headline verbatim.</li>
+  </ul>
+  <p>
+    Every rewritten link keeps the original headline, one click away under the
+    title — the rewrite is an editorial layer, not a replacement for the record.
+  </p>
+
+  <h2>Being a good citizen</h2>
+  <p>
+    The crawler identifies itself, honours <code>robots.txt</code>, waits between
+    requests to the same host, stores only headline-length excerpts, and always
+    links back to the publisher.
+  </p>
+</article>

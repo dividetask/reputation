@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Example Feed</title>
+    <link>https://example.com</link>
+    <description>Test feed</description>
+    <item>
+      <title>BREAKING: Council Approves Bridge Repair - Example Feed</title>
+      <link>https://example.com/bridge</link>
+      <description>&lt;p&gt;The vote was 7-2.&lt;/p&gt;</description>
+      <pubDate>Mon, 01 Sep 2025 09:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Storm delays ferry service</title>
+      <link>https://example.com/ferry</link>
+      <description>Sailings resume Tuesday.</description>
+      <pubDate>Mon, 01 Sep 2025 08:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Duplicate link</title>
+      <link>https://example.com/ferry</link>
+      <pubDate>Mon, 01 Sep 2025 07:00:00 +0000</pubDate>
+    </item>
+  </channel>
+</rss>

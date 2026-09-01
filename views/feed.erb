@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>rehash<%= @community ? " — r/#{@community}" : "" %></title>
+    <link><%= h request.base_url %></link>
+    <description>Rewritten headlines, ranked.</description>
+    <% @posts.each do |post| %>
+      <item>
+        <title><%= h post["title"] %></title>
+        <link><%= h post["url"] %></link>
+        <guid isPermaLink="true"><%= h post["url"] %></guid>
+        <category><%= h post["community"] %></category>
+        <pubDate><%= Time.at((post["published_at"] || post["crawled_at"]).to_i).utc.strftime("%a, %d %b %Y %H:%M:%S +0000") %></pubDate>
+        <description><%= h "Originally: #{post['original_title']}" %></description>
+      </item>
+    <% end %>
+  </channel>
+</rss>

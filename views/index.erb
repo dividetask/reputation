@@ -1,0 +1,69 @@
+<div class="tabs">
+  <% %w[hot new top].each do |sort| %>
+    <a href="<%= link_to_sort(sort) %>" class="<%= 'active' if @sort == sort %>"><%= sort %></a>
+  <% end %>
+  <% if @query && !@query.empty? %>
+    <span class="filter">results for “<%= h @query %>” <a href="<%= params_for(q: nil) %>">clear</a></span>
+  <% end %>
+</div>
+
+<% if @posts.empty? %>
+  <p class="empty">
+    Nothing here yet. Run <code>bin/crawl</code> to fetch and rewrite some headlines.
+  </p>
+<% end %>
+
+<ol class="listing" start="<%= ((@page - 1) * 25) + 1 %>">
+  <% @posts.each do |post| %>
+    <% vote = @votes[post["id"]].to_i %>
+    <li class="post" data-id="<%= post["id"] %>">
+     <div class="row">
+      <div class="votes">
+        <form method="post" action="/posts/<%= post["id"] %>/vote">
+          <input type="hidden" name="value" value="1">
+          <button class="arrow up <%= 'on' if vote == 1 %>" aria-label="Upvote">&#9650;</button>
+        </form>
+        <span class="score"><%= score_of(post) %></span>
+        <form method="post" action="/posts/<%= post["id"] %>/vote">
+          <input type="hidden" name="value" value="-1">
+          <button class="arrow down <%= 'on' if vote == -1 %>" aria-label="Downvote">&#9660;</button>
+        </form>
+      </div>
+
+      <div class="body">
+        <h2>
+          <a class="title" href="<%= h post["url"] %>" rel="noopener noreferrer nofollow"><%= h post["title"] %></a>
+          <span class="domain">(<%= h post["domain"] %>)</span>
+        </h2>
+
+        <p class="meta">
+          <%= time_ago(post["published_at"] || post["crawled_at"]) %>
+          · from <a href="<%= community_path(post["community"]) %>">r/<%= h post["community"] %></a>
+          · via <%= h post["source_name"] %>
+          <% if post["author"] && !post["author"].empty? %> · by <%= h post["author"] %><% end %>
+        </p>
+
+        <% if rewritten?(post) %>
+          <details class="original">
+            <summary>rewritten headline — show the publisher's</summary>
+            <p><%= h post["original_title"] %></p>
+          </details>
+        <% end %>
+
+        <% if post["summary"] && !post["summary"].empty? %>
+          <p class="summary"><%= h post["summary"][0, 240] %><%= "…" if post["summary"].length > 240 %></p>
+        <% end %>
+      </div>
+     </div>
+    </li>
+  <% end %>
+</ol>
+
+<nav class="pagination">
+  <% if @page > 1 %>
+    <a href="<%= params_for(page: @page - 1) %>">&larr; previous</a>
+  <% end %>
+  <% if @more %>
+    <a href="<%= params_for(page: @page + 1) %>">next &rarr;</a>
+  <% end %>
+</nav>

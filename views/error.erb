@@ -1,0 +1,7 @@
+<article class="prose">
+  <h1>Something broke</h1>
+  <p>The request failed. Try again, or head <a href="/">back to the front page</a>.</p>
+  <% if Rehash.env == "development" && @error %>
+    <pre><%= h "#{@error.class}: #{@error.message}" %></pre>
+  <% end %>
+</article>

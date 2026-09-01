@@ -1,0 +1,23 @@
+defaults:
+  max_items: 5
+  timeout: 2
+  respect_robots: false
+  crawl_delay: 0
+
+sources:
+  - key: example-feed
+    name: Example Feed
+    community: test
+    type: feed
+    url: https://example.com/feed.xml
+
+  - key: example-page
+    name: Example Page
+    community: links
+    type: html
+    url: https://example.com/list
+    selectors:
+      item: "li.entry"
+      title: "a.headline"
+      link: "a.headline"
+      summary: "p.blurb"

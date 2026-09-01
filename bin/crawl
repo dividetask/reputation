@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require_relative "../lib/rehash"
+
+options = { only: [] }
+
+OptionParser.new do |parser|
+  parser.banner = "Usage: bin/crawl [options]"
+
+  parser.on("-o", "--only KEYS", Array,
+            "Crawl only these source keys or communities") { |v| options[:only] = v }
+  parser.on("-l", "--list", "List configured sources and exit") { options[:list] = true }
+  parser.on("-r", "--rewriter NAME", "Override REWRITER (rule_based, claude, none)") do |v|
+    ENV["REWRITER"] = v
+  end
+  parser.on("--prune DAYS", Integer, "Delete links older than DAYS, then exit") { |v| options[:prune] = v }
+  parser.on("--rescore", "Recompute ranking for every stored link, then exit") { options[:rescore] = true }
+  parser.on("-q", "--quiet", "Only report the summary") { options[:quiet] = true }
+  parser.on("-h", "--help") { puts parser; exit }
+end.parse!
+
+if options[:list]
+  Rehash.config.sources.each do |source|
+    puts format("%-18s %-10s r/%-9s %s", source.key, source.type, source.community, source.url)
+  end
+  exit
+end
+
+Rehash.logger.level = Logger::WARN if options[:quiet]
+
+if options[:prune]
+  removed = Rehash.repo.prune!(options[:prune])
+  puts "pruned #{removed} links older than #{options[:prune]} days"
+  exit
+end
+
+if options[:rescore]
+  Rehash.repo.rescore!
+  puts "rescored every link"
+  exit
+end
+
+result = Rehash::Crawler.new.crawl_all(only: options[:only])
+puts result
+result.errors.each { |error| warn "  error: #{error}" }
+exit(result.errors.empty? ? 0 : 1)

@@ -1,0 +1,74 @@
+# Sources crawled by Rehash.
+#
+# Every source lands in a "community" (the reddit-style /r/<name> section).
+# Two kinds of source are supported:
+#
+#   type: feed  -> RSS/Atom. Only `url` is needed.
+#   type: html  -> scraped with CSS selectors:
+#                    item:  selector for each result row
+#                    title: selector inside the row (omit -> the row's own text)
+#                    link:  selector inside the row (omit -> the row's own href,
+#                           else the first <a href> inside it)
+#
+# Nothing here is news-specific: any page that lists links works.
+defaults:
+  max_items: 25          # per source, per crawl
+  timeout: 12            # seconds
+  respect_robots: true
+  crawl_delay: 1.0       # seconds between requests to the same host
+
+sources:
+  - key: hackernews
+    name: Hacker News
+    community: tech
+    type: feed
+    url: https://hnrss.org/frontpage
+
+  - key: lobsters
+    name: Lobsters
+    community: tech
+    type: feed
+    url: https://lobste.rs/rss
+
+  - key: bbc-world
+    name: BBC World
+    community: news
+    type: feed
+    url: https://feeds.bbci.co.uk/news/world/rss.xml
+
+  - key: npr
+    name: NPR
+    community: news
+    type: feed
+    url: https://feeds.npr.org/1001/rss.xml
+
+  - key: guardian-world
+    name: The Guardian
+    community: news
+    type: feed
+    url: https://www.theguardian.com/world/rss
+
+  - key: nasa
+    name: NASA
+    community: science
+    type: feed
+    url: https://www.nasa.gov/news-release/feed/
+
+  - key: arxiv-ai
+    name: arXiv cs.AI
+    community: science
+    type: feed
+    url: https://rss.arxiv.org/rss/cs.AI
+    max_items: 15
+
+  # A non-feed example: scrape a plain HTML listing page.
+  - key: github-trending
+    name: GitHub Trending
+    community: code
+    type: html
+    url: https://github.com/trending
+    max_items: 20
+    selectors:
+      item: "article.Box-row"
+      title: "h2 a"
+      link: "h2 a"
